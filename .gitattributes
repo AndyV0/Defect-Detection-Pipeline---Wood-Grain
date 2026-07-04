@@ -1,0 +1,20 @@
+# Auto-detect text files
+* text=auto
+
+# Explicitly declare MATLAB plain text files
+*.m text
+*.txt text
+*.csv text
+
+# Protect MATLAB binary files
+*.mlx binary
+*.mat binary
+*.fig binary
+*.mdl binary
+*.slx binary
+*.p binary
+
+# Protect Image files
+*.png binary
+*.jpg binary
+*.jpeg binary
