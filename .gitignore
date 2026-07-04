@@ -1,0 +1,15 @@
+# Standard MATLAB temporary and crash files
+*.asv
+*.m~
+*.mat
+slprj/
+*.slxc
+
+# Compiled code and figures
+*.mex*
+*.fig
+
+# Image Datasets and Datastores
+/datasets/
+/images/
+*.datastore
