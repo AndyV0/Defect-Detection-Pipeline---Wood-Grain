@@ -1,2 +1,2 @@
-# Defect-Detection-Pipeline---Transistors
-An inspection station built in MATLab that processes transistors
+# Defect-Detection-Pipeline
+An inspection station built in MATLab that processes some object (not decided yet)
