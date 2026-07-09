@@ -39,7 +39,7 @@ function scratchDefectMask = scratchDetection(image)
     % Component Variables
     lengths = [stats.MajorAxisLength];
     eccentricities = [stats.Eccentricity];
-    [imgHeight, imgWidth] = size(bw);
+    [imgHeight, imgWidth] = size(image);
     maxLengthThreshold = imgHeight * 0.9;
     % Sifts through the components for valid defects 
     % Defect length cannot span whole screen, cannot have too big of area,
