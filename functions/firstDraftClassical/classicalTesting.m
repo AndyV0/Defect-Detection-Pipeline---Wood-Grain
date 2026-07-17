@@ -40,3 +40,4 @@ end
 if numScratches > 50
     pass = "Fail";
 end
+end
