@@ -1,4 +1,7 @@
 function [brushMask, props] = brushDetection(image, showDebug)
+% Brush Mask detects smoother, bushy defects in beanTech's '02' dataset
+% '02' contains wood grain images.
+% Input the image and get the binary mask and evidence as outputs
 % Enter a second parameter as 'true' for debug tools
 % Debug includes images of the process & classical evidence metrics
     if nargin < 2, showDebug = false; end % showDebug is off by default
