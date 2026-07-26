@@ -1,66 +1,112 @@
-function scratchDefectMask = scratchDetection(image)
+function [scratchMask, props] = scratchDetection(image, showDebug)
 %   Scratch Defect Detection
-%   Detects the dark scratches on a wood grain texture. Input 'image' can be any test image from BeanTech's 02 data set,
-%   and it will output a scratch defect overlay.
+% Classical defect mask & evidence extraction for the wood-grain-img dataset known as '02'.
+% INPUTS:
+%   image        - original image
+%
+%   showDebug    - OPTIONAL parameter. When 'true' displays evidence metrics  
+%                showDebug is off by default.             
+% OUTPUTS:
+%   scratchMask  - defect mask stored in variable. use imshow(varName) to
+%                call
+%
+%   props        - Stored evidence metrics. disp(varName)
+% Combine with brushDetection for best results
+    if nargin < 2, showDebug = false; end
+
+    % ---- Preprocessing ------------
     imgGS = im2gray(image);
     imgFlat = imflatfield(imgGS, 60);
     
-    % Fibermetric to enhance the lines
+    % ---- Defect Isolation ---------
+    % just use a fibermetric to detect all lines
     imgFiber = fibermetric(imgFlat, [2 3 4], 'ObjectPolarity', 'dark');
     
-    % Single generous threshold
+    % ---- Dynamic Global Threshold --------
+    % Shows the most extreme intensity distribution as potential defects
     thresh = max(prctile(imgFiber(:), 99.5) * 0.2, 0.1);
     evidenceMask = imgFiber > thresh;
- 
     % Remove tiny bits of noise
-    scratchDefectMask = bwareaopen(evidenceMask, 20);
+    rawscratchMask = bwareaopen(evidenceMask, 20);
+
+    % ---- Morphological Clean-Up ----------
+    % Stitch scratches into a more cohesive area
+    scratchMask = imclose(rawscratchMask,  strel('disk', 5));
     
-    % Compute and display metrics directly
-    scratchEvidence(scratchDefectMask);
+    % ---- Compute metrics -----
+    props = scratchEvidence(rawscratchMask, scratchMask, imgFlat, showDebug); 
+    
+    % NOTE: A known issue we have documented is that scratch defect gets a
+    % lot of vertical natural grain as false positives
+    % This is most apparent in non-defect images, where a lot of vertical
+    % lines get flagged. 
 end
 
-%% --- Helper: classical evidence metrics ---
-function scratchEvidence(defectMask)
-    % Extract the centroid and angle of every individual line segment
-    stats = regionprops(defectMask, 'Centroid', 'Orientation', 'Area');
-    
-    if isempty(stats)
-        disp('Clean Image: No regions detected.');
-        return;
+%% ---- Helper: classical evidence metrics ----
+function evidence = scratchEvidence(rawMask, defectMask, imgGS, showDebug)
+    % Extract Area and bounding box dimensions for the blobs
+    lineStats = regionprops(rawMask, 'Area', 'MajorAxisLength', 'MinorAxisLength', 'Orientation');
+    areaStats = regionprops(defectMask, 'Area');
+
+    % Handle clean images
+    if isempty(areaStats)
+        evidence.PercentageFlagged  = 0;
+        evidence.TotalDefectPixels  = 0;
+        evidence.LargestRegionArea  = 0;
+        evidence.NumRegions         = 0;
+        evidence.MaxAspectRatio     = 0;
+        evidence.MaxAngleDeviation  = 0;
+        evidence.MeanAngleDeviation = 0;
+        evidence.IntensityContrast  = 0;
+
+        if showDebug
+                disp('--- Scratch Evidence Metrics ---');
+                disp('Clean Image: No regions detected.');
+        end
+    return;
     end
     
-    % Orientation Consistency (Standard Deviation of Angles)
-    % A low number means the lines are all perfectly parallel (likely a scuff).
-    % A high number means chaotic, random noise.
-    angles = [stats.Orientation];
-    angularVariance = std(angles);
+    % Area Metrics
+    areas = [areaStats.Area];
+    numRegions = length(areaStats);
+    totalArea = sum(areas);
+    largestRegion = max(areas);
+    % Percent of the image flagged
+    percentFlagged = (totalArea / numel(defectMask)) * 100;
     
-    % Spatial Clustering
-    % Extract X and Y coordinates of the centroids
-    centroids = cat(1, stats.Centroid);
-    xCoords = centroids(:, 1);
-    yCoords = centroids(:, 2);
+    % Shape Metrics
+    % Maximum Aspect Ratio (Length vs Width)
+    aspectRatios = [lineStats.MajorAxisLength] ./ ([lineStats.MinorAxisLength] + eps);
+    maxAspectRatio = max(aspectRatios);
 
-    % Calculate how spread out the regions are. 
-    % Small spread = tightly clustered defect. Large spread = random static.
-    spatialSpread = std(xCoords) + std(yCoords);
+    % Grain Metrics
+    % Wood grain runs vertical, while a defect doesn't. Thus:
+    % Orientation deviating from 90 degrees is evidence of going against the grain
+    grainAxisAngle = 90; % near-vertical grain
+    angleDeviations = abs(mod([lineStats.Orientation] - grainAxisAngle + 90, 180) - 90);
+    maxAngleDeviation = max(angleDeviations);
+    meanAngleDeviation = mean(angleDeviations);
 
-    % Total Defect Area
-    totalArea = sum([stats.Area]);
-
-    % Calculate fraction of the image flagged (total true pixels / total pixels)
-    percentFlagged = nnz(defectMask)*100 / numel(defectMask);
-
-    % Bundle into a struct for clean command window output
-    evidence.PercentageFlagged = percentFlagged;
+    % Darkness contrast
+    intensityContrast = mean2(imgGS(~rawMask)) - mean2(imgGS(rawMask));
     
-    % Bundle and Display
+    % Evidences
+    evidence.NumRegions        = numRegions;
     evidence.TotalDefectPixels = totalArea;
+    evidence.LargestRegionArea = largestRegion;
     evidence.PercentageFlagged = percentFlagged;
-    evidence.AngularVariance = angularVariance;
-    evidence.SpatialSpread = spatialSpread;
-    
-    % Print the evidence directly to the workspace/command window
-    disp('--- Scratch Evidence Metrics ---');
-    disp(evidence);
+    % Specific to Scratches
+    % A high aspect ratio indicates a long, thin scratch
+    evidence.MaxAspectRatio = maxAspectRatio;
+    % A high angle deviation indicates the mask area cuts against the grain
+    evidence.MaxAngleDeviation  = maxAngleDeviation;
+    evidence.MeanAngleDeviation = meanAngleDeviation;
+    % Positive = flagged region is darker than surrounding wood, as expected
+    evidence.IntensityContrast = intensityContrast;
+
+    if showDebug
+        % Print the evidence directly to the workspace window
+        disp('--- Scratch Evidence Metrics ---');
+        disp(evidence);
+    end
 end

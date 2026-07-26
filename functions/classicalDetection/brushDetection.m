@@ -1,9 +1,17 @@
 function [brushMask, props] = brushDetection(image, showDebug)
-% Brush Mask detects smoother, bushy defects in beanTech's '02' dataset
-% '02' contains wood grain images.
-% Input the image and get the binary mask and evidence as outputs
-% Enter a second parameter as 'true' for debug tools
-% Debug includes images of the process & classical evidence metrics
+%  Brush Defect Detection
+% Classical defect mask & evidence extraction for the wood-grain-img dataset known as '02'.
+% INPUTS:
+%   image      - original image
+%
+%   showDebug  - OPTIONAL parameter. When 'true' displays evidence metrics  
+%                showDebug is off by default. 
+% OUTPUTS:
+%   brushMask  - defect mask stored in variable. use imshow(varName) to
+%                call
+%
+%   props      - Stored evidence metrics. disp(varName)
+% Combine with brushDetection for best results
     if nargin < 2, showDebug = false; end % showDebug is off by default
     % Pre processing
     imgGS = im2double(im2gray(image));
@@ -81,17 +89,21 @@ function [brushMask, props] = brushDetection(image, showDebug)
     brushMask = bwareaopen(filledMask, 1000);
 
     % Calculate properties of the detected brush regions
-    % NOTE: showDebug only affects the displaying of the evidence
-    % The actual evidence is always being stored in 'props' var
     props = brushEvidence(brushMask, imgFlat, showDebug);
 
-    if showDebug
-        % -----------------------------------------------------------
-        % VISUALIZATION SUITE
-        % ONLY FOR DISPLAYING INDIVUDAL STEPS
+    % NOTE: This detector only has one main 'issue.' For some reason, cross grain is
+    % present ONLY in defect images, leading this brush mask to mark cross grain. 
+    % According to the ground truth masks provided, these cross
+    % grains (only present in defect images) are not actually defects. 
+    % Despite this, our team has decided to keep the brush mask as is.
+
+%{
+        -----------------------------------------------------------
+        VISUALIZATION SUITE
+        ONLY FOR DISPLAYING INDIVUDAL STEPS
+
         figure('Name', 'Streamlined Defect Fusion', 'NumberTitle', 'off', 'Position', [100, 100, 1800, 900]);
         colormap('jet'); 
-        
         subplot(2, 3, 1);
         imshow(imgFlat, []);
         title('1. Preprocessed Flatfield');
@@ -102,11 +114,6 @@ function [brushMask, props] = brushDetection(image, showDebug)
         
         subplot(2, 3, 3);
         imagesc(invertedEntropy); colorbar; hold on;
-        % Used to block the contour warning
-        if any(searchNet(:))
-        % Only draw the contour if there's actually a net to outline
-            contour(searchNet, [0.5 0.5], 'r', 'LineWidth', 2);
-        end
         hold off;
         title('3. Entropy Map + Search Net ROI');
         
@@ -122,6 +129,7 @@ function [brushMask, props] = brushDetection(image, showDebug)
         imshow(brushMask);
         title('6. Final Clean Output');
     end
+%}
 end
 
 
