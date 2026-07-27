@@ -69,7 +69,7 @@ function [brushMask, props] = brushDetection(image, showDebug)
     isMoreThanHalf = nnz(searchNet) > (numel(searchNet) / 2);
     if isMoreThanHalf
         % Then remove this feature by setting it to a black screen
-        searchNet = false(600, 600);
+        searchNet = false(size(FFTMask));
     end 
     % Since the net protects us, we can safely grab weaker defect signals.
     rawEntropyBand = (invertedEntropy > 1.2) & (invertedEntropy < 5.0);
@@ -146,7 +146,7 @@ function evidence = brushEvidence(defectMask, imgGS, showDebug)
         evidence.NumRegions = 0;
         evidence.TotalDefectPixels = 0;
         evidence.LargestRegionArea = 0;
-        evidence.PercentFlagged = 0;
+        evidence.PercentageFlagged = 0;
         evidence.AvgSolidity = NaN;
         evidence.TextureDeficit = NaN;
         evidence.IntensityContrast = NaN;
@@ -182,7 +182,7 @@ function evidence = brushEvidence(defectMask, imgGS, showDebug)
     evidence.NumRegions = numRegions;
     evidence.TotalDefectPixels = totalArea;
     evidence.LargestRegionArea = largestRegion;
-    evidence.PercentageFlagged    = percentFlagged;
+    evidence.PercentageFlagged    = percentFlagged; % Changed to fit with all other detectors
     % Specific to brush defects
     evidence.AvgSolidity       = avgSolidity; % Blob-ness of defect
     evidence.TextureDeficit    = textureDeficit; % Avg texture intensity
