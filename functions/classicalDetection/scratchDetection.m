@@ -29,17 +29,30 @@ function [scratchMask, props] = scratchDetection(image, showDebug)
     % Remove tiny bits of noise
     rawscratchMask = bwareaopen(evidenceMask, 20);
 
+    grainAxisAngle  = 90;   % near-vertical grain
+    minDeviationDeg = 20;   % must cut this far across the grain to count as a candidate
+ 
+    rawStats = regionprops(rawscratchMask, 'Orientation', 'PixelIdxList');
+    grainFilteredMask = false(size(rawscratchMask));
+    if ~isempty(rawStats)
+        orientations = [rawStats.Orientation];
+        angleDevs = abs(mod(orientations - grainAxisAngle + 90, 180) - 90);
+        keepIdx = angleDevs > minDeviationDeg;
+        for i = find(keepIdx)
+            grainFilteredMask(rawStats(i).PixelIdxList) = true;
+        end
+    end
+
     % ---- Morphological Clean-Up ----------
     % Stitch scratches into a more cohesive area
-    scratchMask = imclose(rawscratchMask,  strel('disk', 5));
+    scratchMask = imclose(grainFilteredMask,  strel('disk', 5));
     
     % ---- Compute metrics -----
-    props = scratchEvidence(rawscratchMask, scratchMask, imgFlat, showDebug); 
+    props = scratchEvidence(grainFilteredMask, scratchMask, imgFlat, showDebug); 
     
-    % NOTE: A known issue we have documented is that scratch defect gets a
-    % lot of vertical natural grain as false positives
-    % This is most apparent in non-defect images, where a lot of vertical
-    % lines get flagged. 
+    % NOTE:Issue where is scratch defect gets a
+    % lot of vertical natural grain as false positives has been fixed
+    % Only real issue is the noise left over. No longer vertical, but speckly
 end
 
 %% ---- Helper: classical evidence metrics ----
