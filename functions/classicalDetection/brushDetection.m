@@ -11,7 +11,7 @@ function [brushMask, props] = brushDetection(image, showDebug)
 %                call
 %
 %   props      - Stored evidence metrics. disp(varName)
-% Combine with brushDetection for best results
+% Combine with scratchDetection for best results
     if nargin < 2, showDebug = false; end % showDebug is off by default
     % Pre processing
     imgGS = im2double(im2gray(image));
