@@ -77,7 +77,7 @@ bleedMask = bwareaopen(defectMask, 50);
 % of time, so just be satisfied with what you have in life.
 
 % ---- Compute a small set of interpretable measurements ---------
-props = evidenceMetrics(defectMask, partMask, showDebug);
+props = evidenceMetrics(bleedMask, partMask, showDebug);
 
 end
 
