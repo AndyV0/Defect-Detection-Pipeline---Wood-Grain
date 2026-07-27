@@ -9,7 +9,7 @@ function net = trainSegmentDefect(defectImageDir, defectMaskDir, cleanImageDir, 
     %   defectMaskDir  - folder of matching binary masks. same sort order
     %   as defectImageDir (should be by default)
     %   cleanImageDir  - folder of defect-free images 
-    %   datasetName    - short string identifying the dataset, e.g. '01',
+    %   datasetNum    - short string identifying the dataset, e.g. '01',
     %                    '02', '03', Used both to name output
     %                    files (so different datasets never overwrite each
     %                    other's saved models/generated masks) & to select
@@ -185,7 +185,7 @@ end
  
 %% =============HELPER FUNCTIONS============================
 function augParams = getAugParams(datasetNum)
-    %GETAUGPARAMS Maps a datasetName to the right augmentation settings.
+    %GETAUGPARAMS Maps a dataset nunber to the right augmentation settings.
     % The wood grain images in 02 are the only reason this exists
     switch lower(datasetNum)
         case {'01', '03'}
@@ -225,12 +225,12 @@ function augParams = getAugParams(datasetNum)
 end
 
 %% ----------------------------------------------------------------------
-function inputSize = getInputSize(datasetName)
-% GETINPUTSIZE Maps a datasetName to the network's input resolution.
+function inputSize = getInputSize(datasetNum)
+% GETINPUTSIZE Maps a datasetNum to the network's input resolution.
 % BTAD (01/03) defects are large, blob-like -- 256x256 loses nothing.
 % BTAD (02) has thin, small defects that were getting squashed below detection by 
 % internal downsampling. This function is the fix
-switch lower(datasetName)
+switch lower(datasetNum)
     case '02'
         inputSize = [512 512 3];   % Wood grain is a pain
     otherwise
