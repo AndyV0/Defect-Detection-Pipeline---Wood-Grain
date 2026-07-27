@@ -23,7 +23,7 @@ function net = trainSegmentDefect(defectImageDir, defectMaskDir, cleanImageDir, 
     %% ---- 0. Configurations ---------------------------------------------
         % Btad/ datasetNum is used as a param to the func
     augParams = getAugParams(datasetNum); % Sets augmentations based on dataset
-    inputSize = getInputSize(datasetName);  % network input size (resized down from images)
+    inputSize = getInputSize(datasetNum);  % network input size (resized down from images)
     classNames = ["background", "defect"]; % Class names to create weights
     pixelIDs   = [0 255]; % raw mask pixel values for each class
     
