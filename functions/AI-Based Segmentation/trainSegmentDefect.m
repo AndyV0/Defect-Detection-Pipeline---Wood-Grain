@@ -20,14 +20,14 @@ function net = trainSegmentDefect(defectImageDir, defectMaskDir, cleanImageDir, 
     %   folder
     %
     % MAKE SURE TO COPY THE FILE WHERE IMAGES ARE STORED (ko & ok) not their parents
-    %% ---- 0. Configurations ---------------------------------------------
+    %% ---- Configurations ---------------------------------------------
         % Btad/ datasetNum is used as a param to the func
     augParams = getAugParams(datasetNum); % Sets augmentations based on dataset
     inputSize = getInputSize(datasetNum);  % network input size (resized down from images)
     classNames = ["background", "defect"]; % Class names to create weights
     pixelIDs   = [0 255]; % raw mask pixel values for each class
     
-    %% ---- 1. Build datastores for the labeled defect images -------------
+    %% ---- Build datastores for the labeled defect images -------------
     imdsDefect = imageDatastore(defectImageDir);
     pxdsDefect = pixelLabelDatastore(defectMaskDir, classNames, pixelIDs);
      
@@ -35,7 +35,7 @@ function net = trainSegmentDefect(defectImageDir, defectMaskDir, cleanImageDir, 
     assert(numel(imdsDefect.Files) == numel(pxdsDefect.Files), ...
         'Mismatch between defect image count and mask count -- check folders.');
      
-    %% ---- 2. Build ground truths for all non-defect training images -----
+    %% ---- Build ground truths for all non-defect training images -----
     imdsClean = imageDatastore(cleanImageDir);
      
     % The network needs a ground-truth mask for every training image, defect or not
@@ -57,7 +57,7 @@ function net = trainSegmentDefect(defectImageDir, defectMaskDir, cleanImageDir, 
     % so later steps can treat defect and clean image/mask pairs uniformly.
     pxdsClean = pixelLabelDatastore(cleanMaskDir, classNames, pixelIDs);
      
-    %% ---- 3. Stratified Train/Val /Test split ------------------------------
+    %% ---- Stratified Train/Val /Test split ------------------------------
     % Stratified split  splits each category (defect images, clean images) separately first, 
     % and then combines the pieces s.t ratio of each category are preserved in every split
     rng(42);  % arbitrary; any fixed integer with a reproducible starting state
@@ -79,7 +79,7 @@ function net = trainSegmentDefect(defectImageDir, defectMaskDir, cleanImageDir, 
     valIdxC   = cleanPerm(nTrainC+1:nTrainC+nValC);
     testIdxC  = cleanPerm(nTrainC+nValC+1:end);
      
-    %% ---- 3.5. Oversampling -----------------------------
+    %% ---- Oversampling -----------------------------
     targetDefectFraction = 0.45; % What percent of data is defects 
 REPEAT_FACTOR = max(1, round( ...
     targetDefectFraction * nTrainC / (nTrainD * (1 - targetDefectFraction)) )); %  Times to duplicate each training-split defect image/mask pair.
@@ -106,7 +106,7 @@ REPEAT_FACTOR = max(1, round( ...
     fprintf('Val:   %d defect + %d clean = %d total\n', numel(valIdxD), numel(valIdxC), numel(imdsVal.Files));
     fprintf('Test:  %d defect + %d clean = %d total\n', numel(testIdxD), numel(testIdxC), numel(imdsTest.Files));
      
-    %% ---- 4. Class-weighted loss --------------------
+    %% ---- Class-weighted loss --------------------
     % Mitigates the fact that defect pixels are rare by weighting them
     % Defects are now fat
     tble = countEachLabel(pxdsTrain); % Reads through every mask in pxdsTrain
@@ -117,7 +117,7 @@ REPEAT_FACTOR = max(1, round( ...
     % Print Checkpoint
     fprintf('Class weights: background=%.4f, defect=%.4f\n', classWeights(1), classWeights(2));
      
-    %% ---- 5. Data augmentation ------------------------------------------------
+    %% ---- Data augmentation ------------------------------------------------
     % Creates a new, small function on the spot that takes data
     resizeElem = @(data) resizeImageAndLabel(data, inputSize(1:2));
     augmentFcn = @(data) augmentImageAndLabel(data, augParams);
@@ -129,17 +129,17 @@ REPEAT_FACTOR = max(1, round( ...
     dsVal = combine(imdsVal, pxdsVal);
     dsVal = transform(dsVal, resizeElem); % validation doesn't need augmentation
      
-    %% ---- 6. Build the network ----------------------------------------------
+    %% ---- Build the network ----------------------------------------------
     % My favorite step
     net = deeplabv3plus(inputSize, numel(classNames), "resnet18");
     % Print Checkpoint
     fprintf('Using DeepLabv3+ with pretrained resnet18 encoder.\n');
      
-    %% ---- 7. Weighted loss function ---------
+    %% ---- Weighted loss function ---------
     % Actualizes class weights into the training network
     lossFcn = @(Y, T) crossentropy(Y, T, classWeights, WeightsFormat="C");
      
-    %% ---- 8. Training options ---------------------------------------------------
+    %% ---- Training options ---------------------------------------------------
     options = trainingOptions('adam', ...
         'InitialLearnRate', 1e-4, ...
         'MaxEpochs', 60, ...
@@ -153,7 +153,7 @@ REPEAT_FACTOR = max(1, round( ...
         'Plots', 'training-progress', ...
         'Verbose', true);
     
-    %% ---- 9. Train ---------------------------------------------------------------
+    %% ---- Train ---------------------------------------------------------------
     % The actual training function
     % Everything build was for this step
     net = trainnet(dsTrain, net, lossFcn, options);
@@ -318,11 +318,10 @@ end
 % tradeoff from the class-weighting, where softening the weights traded
 % some precision for recall. All of which stems from the small defect
 % sample
-% 01 sits in between on most metrics — benefiting from having the most
-% defect examples and the most consistent circular geometry. Nearly as good
-% recall (0.970) as 03 with an almost as good as 02 IoU of 01: 0.577
+% 01 sits in between on most metrics — benefiting from having the most consistent circular geometry. 
+% Nearly as good recall (0.970) as 03 with an almost as good as 02 IoU of 01: 0.577
 
 % LAST NOTE: Each dataset created a new problem with a different fix needed: 
 % 01 needed nothing beyond the defaults (already had good data), 
-% 03 needed softer class weights (over-prediction), 
 % 02 needed both different augmentation (mirror-fill, tighter rotation) and higher resolution (small-defect vanishing)
+% 03 needed softer class weights (over-prediction), 
