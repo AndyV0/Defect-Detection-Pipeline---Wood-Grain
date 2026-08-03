@@ -14,3 +14,14 @@ P. Mishra, R. Verk, D. Fornasier, C. Piciarelli, G.L. Foresti
 "VT-ADL: A Vision Transformer Network for Image Anomaly Detection and Localization"
 30th IEEE/IES International Symposium on Industrial Electronics (ISIE)
 Kyoto, Japan, June 20-23, 2021
+
+# Objective
+The objective of this project is to create a function to find and interpret defects in materials using the Image Toolbox in MATLAB and integrate AI-based detection into the function. This would allow the AI classifier to also be backed by our classical styles of image detection.
+
+# Usage and Testing
+TEXT GOES HERE
+
+# Requirements
+MATLAB Image Processing Toolbox
+
+# Reproducing Results
