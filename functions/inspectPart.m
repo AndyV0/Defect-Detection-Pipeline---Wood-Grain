@@ -84,29 +84,32 @@ function result = inspectPart(image, net, classNames, showDebug)
     result.crossDetectorAgreement = crossDetectorAgreement;
 
     if showDebug
+        % THIS SECTION ADDS CLUTTER TO THE LIVE SCRIPT
+        % IF TYOU WANT TO USE THIS TO DEBUG, just remove the comment '%'s
         % Display the final verdict of both
-        if overrideApplied
-            fprintf('*** OVERRIDE: AI confidence %.2f < 0.75 -- using rule-based decision ***\n', ...
-                confidenceScore);
-        end
-        fprintf('Final Decision:    %s\n', finalLabel);
+        %%if overrideApplied
+            %fprintf('*** OVERRIDE: AI confidence %.2f < 0.75 -- using rule-based decision ***\n', ...
+                %confidenceScore);
+        %end
+        %fprintf('Final Decision:    %s\n', finalLabel);
      
         % Mark if they disagree
-        if disagreementFlag
-            fprintf('*** DISAGREEMENT: AI raw decision and rule-based baseline do not match ***\n');
-        end
+        %if disagreementFlag
+            %fprintf('*** DISAGREEMENT: AI raw decision and rule-based baseline do not match ***\n');
+        %end
         % Mark if classical detections disagree (typically means an img is either only brush defects or contains only cross grain)
-        if brushFail && ~scratchFail
-            fprintf('NOTE: flagged by brush only -- check for curved-grain false positive\n');
-        end
+        %if brushFail && ~scratchFail
+            %fprintf('NOTE: flagged by brush only -- check for curved-grain false positive\n');
+        %end
      
       
-        disp('=== Hybrid Inspection Result ===');
-        fprintf('AI Raw Decision:   %s (confidence %.2f)\n', aiRawLabel, confidenceScore);
-        fprintf('Rule-Based Backup: %s (scratchFail=%d, brushFail=%d)\n', ...
-            baselineDecision, scratchFail, brushFail);
+        %disp('=== Hybrid Inspection Result ===');
+        %fprintf('AI Raw Decision:   %s (confidence %.2f)\n', aiRawLabel, confidenceScore);
+        %fprintf('Rule-Based Backup: %s (scratchFail=%d, brushFail=%d)\n', ...
+            %baselineDecision, scratchFail, brushFail);
         figure('Name', 'Hybrid Inspection Overlay');
         imshow(labelOverlayImage(image, evidenceOverlay, finalLabel, confidenceScore, disagreementFlag));
+        % End of debug
     end
 end
  
