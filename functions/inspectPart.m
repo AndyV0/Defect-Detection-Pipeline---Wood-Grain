@@ -1,4 +1,4 @@
-function result = inspectPart(image, net, classNames, showDebug)
+function result = inspectPart(image, netTransfer, classNames, showDebug)
 % Hybrid inspection combining classical evidence + AI classification. For
 % the 02 dataset
 %
