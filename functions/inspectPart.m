@@ -209,6 +209,7 @@ function outImg = labelOverlayImage(image, mask, label, score, disagreement)
  
     % Tint suspicious regions red
     boundaries = bwperim(mask);
+    boundaries = imdilate(boundaries, strel('disk', 3));
     redChannel = outImg(:,:,1);
     redChannel(boundaries) = 255;
     outImg(:,:,1) = redChannel;
