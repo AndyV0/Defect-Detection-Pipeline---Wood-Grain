@@ -45,7 +45,7 @@ function result = inspectPart(image, netTransfer, classNames, showDebug)
 
     % ---- AI classification ---------------------------------
     imgForNet = prepareForNet(image);
-    [aiLabelCat, scores] = classify(net, imgForNet);
+    [aiLabelCat, scores] = classify(netTransfer, imgForNet);
 
     aiLabelStr       = string(aiLabelCat);
     confidenceScore  = max(scores);
