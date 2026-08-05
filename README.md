@@ -19,12 +19,14 @@ Kyoto, Japan, June 20-23, 2021
 The objective of this project is to create a function to find and interpret defects in materials using the Image Toolbox in MATLAB and integrate AI-based detection into the function. This would allow the AI classifier to also be backed by our classical styles of image detection.
 
 # Usage and Testing
-To use the program, place the images you want to test into the 'myImages' folder and run 'testYourImages.m'. This should import all your images into a 600x600x3xN, 4D uint8 array. Then you may call the function 'inspectPart.m', abiding by the parameters listed within the help function, using myImages(:,:,:,N) as the first parameter (N repesents the number of the image you want to select).
+Images for testing must be 600x600, png files
+
+To use the program, place the images you want to test into the 'myImages' folder and run 'importYourImages.m'. This should import all your images into a 600x600x3xN, 4D uint8 array. Then you may call the function 'inspectPart.m', abiding by the parameters listed within the help function, using myImages(:,:,:,N) as the first parameter (N repesents the number of the image you want to select) or run 'imageTestRunner.m', which will run all images within the folder through the program, outputting an image highlighting found defects and a breakdown of the hybrid models' decisions.
 
 # Requirements
 MATLAB R2026a,
 MATLAB Image Processing Toolbox,
-Computer Processing Toolbox,
+Computer Vision Toolbox,
 Deep Learning Toolbox,
 Statistics Toolbox
 
