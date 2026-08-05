@@ -32,6 +32,7 @@ if ~exist(modelFile, 'file')
     fprintf('Model not found locally -- downloading from my GitHub URL...\n');
     options = weboptions('HeaderFields', {'User-Agent', 'Mozilla/5.0'});
     websave(modelFile, modelURL, options);
+    fprintf('Download complete: %s\n', modelFile);   % Let user know the downlaod is done
 end
 
 % Without checking cache, calling segmentDefect simply loads the first
