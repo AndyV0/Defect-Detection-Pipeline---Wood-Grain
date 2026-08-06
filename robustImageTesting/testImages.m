@@ -16,8 +16,6 @@ numImages = numel(fileList);
 
 if numImages == 0
     error('No PNG files found in the folder: %s', folderPath);
-elseif numImages ~= 14
-    warning('Expected 14 files, but found %d files. Proceeding anyway.', numImages);
 end
 
 % Creates the 600x600x3x14 uint8 matrix instantly
